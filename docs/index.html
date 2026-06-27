@@ -7,234 +7,82 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--tg-theme-bg-color, #f2f2f7); color: var(--tg-theme-text-color, #000); padding: 16px; padding-bottom: 40px; }
 
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    background: var(--tg-theme-bg-color, #f2f2f7);
-    color: var(--tg-theme-text-color, #000);
-    padding: 16px;
-    padding-bottom: 40px;
-  }
+  .tabs { display: flex; background: var(--tg-theme-secondary-bg-color, #fff); border-radius: 12px; padding: 3px; margin-bottom: 14px; gap: 3px; }
+  .tab { flex: 1; padding: 9px 4px; border: none; border-radius: 9px; background: transparent; color: inherit; font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; opacity: 0.5; transition: all 0.15s; }
+  .tab.active { background: var(--tg-theme-button-color, #2481cc); color: var(--tg-theme-button-text-color, #fff); opacity: 1; }
 
-  /* ── Табы ── */
-  .tabs {
-    display: flex;
-    background: var(--tg-theme-secondary-bg-color, #fff);
-    border-radius: 12px;
-    padding: 3px;
-    margin-bottom: 14px;
-    gap: 3px;
-  }
-  .tab {
-    flex: 1;
-    padding: 9px 4px;
-    border: none;
-    border-radius: 9px;
-    background: transparent;
-    color: inherit;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    font-family: inherit;
-    opacity: 0.5;
-    transition: all 0.15s;
-  }
-  .tab.active {
-    background: var(--tg-theme-button-color, #2481cc);
-    color: var(--tg-theme-button-text-color, #fff);
-    opacity: 1;
-  }
+  .card { background: var(--tg-theme-secondary-bg-color, #fff); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+  .card-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; opacity: 0.45; margin-bottom: 12px; }
 
-  /* ── Карточки ── */
-  .card {
-    background: var(--tg-theme-secondary-bg-color, #fff);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 12px;
-  }
-  .card-title {
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-    opacity: 0.45;
-    margin-bottom: 12px;
-  }
+  textarea, input[type=text] { width: 100%; padding: 10px 12px; border-radius: 10px; border: none; background: var(--tg-theme-bg-color, #f2f2f7); color: inherit; font-size: 15px; resize: none; outline: none; font-family: inherit; line-height: 1.5; }
+  .hint { font-size: 12px; opacity: 0.4; margin-top: 7px; padding-left: 2px; }
+  .sep { height: 1px; background: rgba(128,128,128,0.12); margin: 14px 0; }
 
-  textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 10px;
-    border: none;
-    background: var(--tg-theme-bg-color, #f2f2f7);
-    color: inherit;
-    font-size: 15px;
-    resize: none;
-    outline: none;
-    font-family: inherit;
-    line-height: 1.5;
-  }
-  .hint {
-    font-size: 12px;
-    opacity: 0.4;
-    margin-top: 7px;
-    padding-left: 2px;
-  }
-  .sep {
-    height: 1px;
-    background: rgba(128,128,128,0.12);
-    margin: 14px 0;
-  }
+  /* Блок "куда слать" */
+  .dest-options { display: flex; gap: 8px; margin-bottom: 10px; }
+  .dest-opt { flex: 1; padding: 10px 8px; border-radius: 12px; border: 2px solid transparent; background: var(--tg-theme-bg-color, #f2f2f7); color: inherit; font-size: 14px; font-weight: 500; cursor: pointer; text-align: center; font-family: inherit; transition: border-color 0.15s; }
+  .dest-opt.active { border-color: var(--tg-theme-button-color, #2481cc); background: rgba(36,129,204,0.08); }
+  #dest-channel-wrap { display: none; margin-top: 8px; }
 
-  /* ── Toggle ── */
-  .toggle-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
+  /* Channel info badge */
+  .channel-badge { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: rgba(52,199,89,0.1); border-radius: 10px; font-size: 14px; color: #1a7a35; margin-top: 8px; }
+
+  /* Toggle */
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .toggle-label { font-size: 16px; line-height: 1.3; }
-  .toggle {
-    width: 51px; height: 31px;
-    background: #ccc;
-    border-radius: 999px;
-    position: relative;
-    cursor: pointer;
-    transition: background 0.2s;
-    flex-shrink: 0;
-  }
+  .toggle { width: 51px; height: 31px; background: #ccc; border-radius: 999px; position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
   .toggle.on { background: #34c759; }
-  .toggle::after {
-    content: "";
-    width: 27px; height: 27px;
-    background: white;
-    border-radius: 50%;
-    position: absolute;
-    top: 2px; left: 2px;
-    transition: transform 0.2s;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
-  }
+  .toggle::after { content: ""; width: 27px; height: 27px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: transform 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.25); }
   .toggle.on::after { transform: translateX(20px); }
 
-  /* ── Стили нейронки ── */
-  .styles-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-top: 12px;
-  }
-  .style-btn {
-    padding: 11px 10px;
-    border-radius: 12px;
-    border: 2px solid transparent;
-    background: var(--tg-theme-bg-color, #f2f2f7);
-    color: inherit;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    text-align: left;
-    transition: border-color 0.15s, background 0.15s;
-    font-family: inherit;
-    line-height: 1.3;
-  }
+  .styles-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .style-btn { padding: 11px 10px; border-radius: 12px; border: 2px solid transparent; background: var(--tg-theme-bg-color, #f2f2f7); color: inherit; font-size: 14px; font-weight: 500; cursor: pointer; text-align: left; transition: border-color 0.15s; font-family: inherit; line-height: 1.3; }
   .style-btn .emoji { font-size: 22px; display: block; margin-bottom: 3px; }
-  .style-btn.active {
-    border-color: var(--tg-theme-button-color, #2481cc);
-    background: rgba(36,129,204,0.08);
-  }
+  .style-btn.active { border-color: var(--tg-theme-button-color, #2481cc); background: rgba(36,129,204,0.08); }
 
-  /* ── Превью ── */
-  .preview-box {
-    background: var(--tg-theme-bg-color, #f2f2f7);
-    border-radius: 12px;
-    padding: 12px 14px;
-    font-size: 14px;
-    line-height: 1.55;
-    min-height: 60px;
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
+  .preview-box { background: var(--tg-theme-bg-color, #f2f2f7); border-radius: 12px; padding: 12px 14px; font-size: 14px; line-height: 1.55; min-height: 60px; white-space: pre-wrap; word-break: break-word; }
   .preview-box.loading { opacity: 0.4; font-style: italic; }
-
   #ai-section { display: none; }
   #custom-prompt-wrap { display: none; margin-top: 10px; }
 
-  /* ── Подписка ── */
-  .sub-status-card {
-    border-radius: 18px;
-    padding: 20px;
-    margin-bottom: 12px;
-    text-align: center;
-  }
-  .sub-status-card.trial   { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
-  .sub-status-card.active  { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: #fff; }
-  .sub-status-card.expired { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: #fff; }
-
+  /* Подписка */
+  .sub-status-card { border-radius: 18px; padding: 20px; margin-bottom: 12px; text-align: center; }
+  .sub-status-card.trial   { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
+  .sub-status-card.active  { background: linear-gradient(135deg, #11998e, #38ef7d); color: #fff; }
+  .sub-status-card.expired { background: linear-gradient(135deg, #f093fb, #f5576c); color: #fff; }
+  .sub-status-card.admin   { background: linear-gradient(135deg, #f7971e, #ffd200); color: #000; }
   .sub-emoji { font-size: 42px; margin-bottom: 8px; }
   .sub-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
-  .sub-detail { font-size: 14px; opacity: 0.85; margin-bottom: 16px; }
-  .sub-until { font-size: 12px; opacity: 0.7; margin-top: -10px; margin-bottom: 16px; }
+  .sub-detail { font-size: 14px; opacity: 0.85; margin-bottom: 4px; }
+  .sub-until { font-size: 12px; opacity: 0.7; margin-bottom: 16px; }
+  .pay-btn { width: 100%; padding: 14px; border-radius: 14px; border: none; background: rgba(255,255,255,0.28); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; margin-bottom: 4px; }
+  .pay-note { font-size: 12px; opacity: 0.75; margin-top: 4px; }
 
-  .pay-btn {
-    width: 100%;
-    padding: 16px;
-    border-radius: 14px;
-    border: none;
-    background: rgba(255,255,255,0.25);
-    color: #fff;
-    font-size: 17px;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: inherit;
-    backdrop-filter: blur(10px);
-    transition: background 0.15s;
-  }
-  .pay-btn:active { background: rgba(255,255,255,0.35); }
-  .pay-btn.renew  { background: rgba(255,255,255,0.2); }
+  .promo-row { display: flex; gap: 8px; }
+  .promo-row input { flex: 1; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+  .promo-apply-btn { padding: 10px 16px; border-radius: 10px; border: none; background: var(--tg-theme-button-color, #2481cc); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; }
+  .promo-result { margin-top: 8px; padding: 10px 12px; border-radius: 10px; font-size: 14px; display: none; }
+  .promo-result.ok  { background: rgba(52,199,89,0.15); color: #1a7a35; }
+  .promo-result.err { background: rgba(255,59,48,0.12); color: #c0392b; }
 
-  .perks {
-    background: var(--tg-theme-secondary-bg-color, #fff);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 12px;
-  }
-  .perk {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 0;
-    font-size: 15px;
-  }
+  .perks { background: var(--tg-theme-secondary-bg-color, #fff); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+  .perk { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; font-size: 15px; line-height: 1.4; }
   .perk + .perk { border-top: 1px solid rgba(128,128,128,0.1); }
   .perk-icon { font-size: 20px; flex-shrink: 0; }
 
-  /* ── Кнопки сохранения ── */
-  .save-btn {
-    width: 100%;
-    padding: 16px;
-    border-radius: 14px;
-    border: none;
-    background: var(--tg-theme-button-color, #2481cc);
-    color: var(--tg-theme-button-text-color, #fff);
-    font-size: 17px;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: inherit;
-    margin-top: 4px;
-  }
+  .instruction { background: var(--tg-theme-secondary-bg-color, #fff); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+  .instr-step { display: flex; gap: 12px; padding: 8px 0; align-items: flex-start; }
+  .instr-step + .instr-step { border-top: 1px solid rgba(128,128,128,0.08); }
+  .instr-num { width: 26px; height: 26px; border-radius: 50%; background: var(--tg-theme-button-color, #2481cc); color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .instr-text { font-size: 14px; line-height: 1.5; padding-top: 3px; }
+  .instr-text b { font-weight: 600; }
 
-  .gen-btn {
-    width: 100%;
-    margin-top: 8px;
-    padding: 10px;
-    border-radius: 10px;
-    border: none;
-    background: rgba(128,128,128,0.13);
-    color: inherit;
-    font-size: 14px;
-    font-family: inherit;
-    cursor: pointer;
-  }
+  .key-warning { background: rgba(255,149,0,0.12); border-radius: 12px; padding: 12px 14px; font-size: 13px; color: #b8600a; margin-bottom: 12px; display: none; }
+
+  .save-btn { width: 100%; padding: 16px; border-radius: 14px; border: none; background: var(--tg-theme-button-color, #2481cc); color: var(--tg-theme-button-text-color, #fff); font-size: 17px; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 4px; }
+  .gen-btn { width: 100%; margin-top: 8px; padding: 10px; border-radius: 10px; border: none; background: rgba(128,128,128,0.13); color: inherit; font-size: 14px; font-family: inherit; cursor: pointer; }
 
   .page { display: none; }
   .page.active { display: block; }
@@ -242,112 +90,125 @@
 </head>
 <body>
 
-<!-- ── Табы ── -->
 <div class="tabs">
-  <button class="tab active" onclick="showPage('sub')">💳 Подписка</button>
-  <button class="tab" onclick="showPage('settings')">⚙️ Каналы</button>
-  <button class="tab" onclick="showPage('ai')">🤖 Нейронка</button>
+  <button class="tab active" onclick="showPage('sub', this)">💳 Подписка</button>
+  <button class="tab" onclick="showPage('settings', this)">📢 Каналы</button>
+  <button class="tab" onclick="showPage('ai', this)">🤖 Нейронка</button>
 </div>
 
-<!-- ══════════════════════════════════════════
-     СТРАНИЦА 1: ПОДПИСКА
-══════════════════════════════════════════ -->
+<!-- ══ ПОДПИСКА ══ -->
 <div class="page active" id="page-sub">
-
-  <!-- Статус подписки (заполняется JS) -->
   <div class="sub-status-card" id="sub-card">
     <div class="sub-emoji" id="sub-emoji">⏳</div>
     <div class="sub-title" id="sub-title">Загрузка...</div>
     <div class="sub-detail" id="sub-detail"></div>
     <div class="sub-until" id="sub-until"></div>
-    <button class="pay-btn" id="pay-btn" onclick="requestPayment()" style="display:none">
-      💳 Оплатить 200₽ / месяц
-    </button>
+    <button class="pay-btn" id="pay-btn" onclick="requestPayment()" style="display:none">💳 Оплатить 200₽ / месяц</button>
+    <div class="pay-note" id="pay-note" style="display:none">Счёт придёт в чат — проверь сообщения от бота</div>
   </div>
 
-  <!-- Что входит -->
+  <div class="card" id="promo-block">
+    <div class="card-title">🎟 Промокод</div>
+    <div class="promo-row">
+      <input type="text" id="promo-input" placeholder="ВВЕДИ КОД" maxlength="20" oninput="this.value=this.value.toUpperCase()">
+      <button class="promo-apply-btn" onclick="applyPromo()">Применить</button>
+    </div>
+    <div class="promo-result" id="promo-result"></div>
+  </div>
+
+  <div class="instruction">
+    <div class="card-title">🚀 Как начать</div>
+    <div class="instr-step"><div class="instr-num">1</div><div class="instr-text">Перейди во вкладку <b>📢 Каналы</b> — добавь каналы для парсинга</div></div>
+    <div class="instr-step"><div class="instr-num">2</div><div class="instr-text">Выбери <b>куда слать</b> посты — в личку или в свой канал</div></div>
+    <div class="instr-step"><div class="instr-num">3</div><div class="instr-text">Если выбрал канал — <b>добавь бота администратором</b> в своём канале</div></div>
+    <div class="instr-step"><div class="instr-num">4</div><div class="instr-text">Во вкладке <b>🤖 Нейронка</b> включи переработку и выбери стиль</div></div>
+    <div class="instr-step"><div class="instr-num">5</div><div class="instr-text">Нажми <b>Сохранить</b> — посты начнут приходить каждые 30 минут</div></div>
+  </div>
+
   <div class="perks">
-    <div class="card-title">Что включено в подписку</div>
-    <div class="perk"><span class="perk-icon">📢</span> Неограниченное количество каналов</div>
+    <div class="card-title">Что включено</div>
+    <div class="perk"><span class="perk-icon">📢</span> Парсинг любых публичных каналов</div>
+    <div class="perk"><span class="perk-icon">📬</span> Отправка в личку или в свой канал</div>
     <div class="perk"><span class="perk-icon">🤖</span> Переработка постов нейронкой</div>
     <div class="perk"><span class="perk-icon">🔍</span> Фильтры по ключевым словам</div>
-    <div class="perk"><span class="perk-icon">⚡️</span> Обновления каждые 30 минут</div>
-    <div class="perk"><span class="perk-icon">🎁</span> 3 дня бесплатно при регистрации</div>
+    <div class="perk"><span class="perk-icon">🎁</span> 3 дня бесплатно при старте</div>
   </div>
-
 </div>
 
-<!-- ══════════════════════════════════════════
-     СТРАНИЦА 2: КАНАЛЫ И СЛОВА
-══════════════════════════════════════════ -->
+<!-- ══ КАНАЛЫ И НАЗНАЧЕНИЕ ══ -->
 <div class="page" id="page-settings">
 
+  <!-- ОТКУДА парсим -->
   <div class="card">
-    <div class="card-title">📢 Каналы для парсинга</div>
-    <textarea id="channels" rows="6"
-      placeholder="durov&#10;telegram&#10;breakingmash&#10;exploitex"></textarea>
+    <div class="card-title">📥 Откуда парсить</div>
+    <textarea id="channels" rows="5" placeholder="durov&#10;telegram&#10;breakingmash&#10;exploitex"></textarea>
     <p class="hint">По одному на строке, без @. Только публичные каналы.</p>
   </div>
 
+  <!-- Фильтр -->
   <div class="card">
     <div class="card-title">🔍 Фильтр по словам</div>
-    <textarea id="keywords" rows="2"
-      placeholder="крипта, биткоин, хайп, нейросеть"></textarea>
-    <p class="hint">Через запятую. Оставь пустым — получать все посты.</p>
+    <textarea id="keywords" rows="2" placeholder="крипта, биткоин, хайп"></textarea>
+    <p class="hint">Через запятую. Пусто — получать все посты.</p>
+  </div>
+
+  <!-- КУДА слать -->
+  <div class="card">
+    <div class="card-title">📤 Куда отправлять посты</div>
+
+    <div class="dest-options">
+      <button class="dest-opt active" id="dest-personal" onclick="selectDest('personal')">
+        💬 В личку
+      </button>
+      <button class="dest-opt" id="dest-channel" onclick="selectDest('channel')">
+        📣 В мой канал
+      </button>
+    </div>
+
+    <div id="dest-channel-wrap">
+      <input type="text" id="dest-channel-input" placeholder="@myawesomechannel"
+        oninput="normalizeChannel()">
+      <p class="hint">Юзернейм канала с @. Бот должен быть администратором в нём.</p>
+
+      <div class="channel-badge" id="channel-badge" style="display:none">
+        ✅ Бот должен быть <b>администратором</b> канала с правом публикации постов
+      </div>
+    </div>
   </div>
 
   <button class="save-btn" onclick="saveSettings()">💾 Сохранить</button>
 </div>
 
-<!-- ══════════════════════════════════════════
-     СТРАНИЦА 3: НЕЙРОНКА
-══════════════════════════════════════════ -->
+<!-- ══ НЕЙРОНКА ══ -->
 <div class="page" id="page-ai">
-
+  <div class="key-warning" id="key-warning">
+    ⚠️ Groq API ключ не вставлен. Открой <b>docs/index.html</b>, найди <code>GROQ_KEY = ""</code> и вставь ключ с <b>console.groq.com</b>
+  </div>
   <div class="card">
     <div class="card-title">🤖 Переработка постов</div>
     <div class="toggle-row">
       <span class="toggle-label">Переписывать посты перед отправкой</span>
       <div class="toggle" id="ai-toggle" onclick="toggleAI()"></div>
     </div>
-
     <div id="ai-section">
       <div class="sep"></div>
-      <div class="card-title">Стиль переработки</div>
-
+      <div class="card-title">Стиль</div>
       <div class="styles-grid">
-        <button class="style-btn active" data-style="hype" onclick="selectStyle(this)">
-          <span class="emoji">🔥</span>Хайп
-        </button>
-        <button class="style-btn" data-style="short" onclick="selectStyle(this)">
-          <span class="emoji">⚡️</span>Коротко
-        </button>
-        <button class="style-btn" data-style="meme" onclick="selectStyle(this)">
-          <span class="emoji">😂</span>Мемно
-        </button>
-        <button class="style-btn" data-style="custom" onclick="selectStyle(this)">
-          <span class="emoji">✍️</span>Свой промт
-        </button>
+        <button class="style-btn active" data-style="hype" onclick="selectStyle(this)"><span class="emoji">🔥</span>Хайп</button>
+        <button class="style-btn" data-style="short" onclick="selectStyle(this)"><span class="emoji">⚡️</span>Коротко</button>
+        <button class="style-btn" data-style="meme" onclick="selectStyle(this)"><span class="emoji">😂</span>Мемно</button>
+        <button class="style-btn" data-style="custom" onclick="selectStyle(this)"><span class="emoji">✍️</span>Свой промт</button>
       </div>
-
       <div id="custom-prompt-wrap">
-        <textarea id="custom-prompt" rows="3"
-          placeholder="Напиши промт. Например: перепиши как стартапер из Кремниевой долины..."></textarea>
+        <textarea id="custom-prompt" rows="3" placeholder="Напиши промт..."></textarea>
       </div>
-
       <div class="sep"></div>
       <div class="card-title">Превью</div>
-      <div class="preview-box" id="preview">
-        Вставь тестовый текст ниже и нажми кнопку ↓
-      </div>
-      <textarea id="preview-input" rows="2"
-        placeholder="Вставь пример текста для теста..."
-        oninput="schedulePreview()"
-        style="margin-top:8px"></textarea>
+      <div class="preview-box" id="preview">Вставь тест-текст ниже ↓</div>
+      <textarea id="preview-input" rows="2" placeholder="Вставь пример текста..." oninput="schedulePreview()" style="margin-top:8px"></textarea>
       <button class="gen-btn" onclick="runPreview()">🔄 Сгенерировать превью</button>
     </div>
   </div>
-
   <button class="save-btn" onclick="saveSettings()">💾 Сохранить</button>
 </div>
 
@@ -355,99 +216,137 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// ──────────────────────────────────────────
-// ВСТАВЬ СЮДА СВОЙ GROQ API KEY:
-const GROQ_KEY = "ТВОЙ_GROQ_API_KEY";
-// ──────────────────────────────────────────
+// ══ ВСТАВЬ GROQ KEY ══
+const GROQ_KEY = "";
+// ════════════════════
 
 let aiEnabled = false;
 let selectedStyle = "hype";
 let previewTimer = null;
-let currentPage = "sub";
+let destMode = "personal"; // "personal" | "channel"
 
-// ── Навигация ──────────────────────────────
+if (!GROQ_KEY) document.getElementById("key-warning").style.display = "block";
 
-function showPage(name) {
-  currentPage = name;
+function showPage(name, btn) {
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
   document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
   document.getElementById("page-" + name).classList.add("active");
-  event.target.classList.add("active");
+  btn.classList.add("active");
 }
 
-// ── Статус подписки ────────────────────────
-// Данные о подписке передаются через URL-параметр ?status=...
-// Бот формирует ссылку: MINI_APP_URL?status=trial&until=2024-01-05&days=2
-// При обычном открытии — читаем из localStorage
+// ── Куда слать ──
+function selectDest(mode) {
+  destMode = mode;
+  document.getElementById("dest-personal").classList.toggle("active", mode === "personal");
+  document.getElementById("dest-channel").classList.toggle("active", mode === "channel");
+  document.getElementById("dest-channel-wrap").style.display = mode === "channel" ? "block" : "none";
+  if (mode === "channel") {
+    document.getElementById("channel-badge").style.display = "flex";
+  }
+}
 
+function normalizeChannel() {
+  let val = document.getElementById("dest-channel-input").value.trim();
+  if (val && !val.startsWith("@") && !val.startsWith("-100")) {
+    document.getElementById("dest-channel-input").value = "@" + val;
+  }
+}
+
+// ── Статус подписки ──
 function loadSubStatus() {
   const params = new URLSearchParams(window.location.search);
-  const status  = params.get("status") || localStorage.getItem("sub_status") || "trial";
-  const until   = params.get("until")  || localStorage.getItem("sub_until")  || "";
-  const days    = params.get("days")   || localStorage.getItem("sub_days")   || "3";
-
+  const status = params.get("status") || localStorage.getItem("sub_status") || "trial";
+  const until  = params.get("until")  || localStorage.getItem("sub_until")  || "";
+  const days   = params.get("days")   || localStorage.getItem("sub_days")   || "3";
   if (params.get("status")) {
     localStorage.setItem("sub_status", status);
-    localStorage.setItem("sub_until",  until);
-    localStorage.setItem("sub_days",   days);
+    localStorage.setItem("sub_until", until);
+    localStorage.setItem("sub_days", days);
   }
-
-  const card   = document.getElementById("sub-card");
-  const emoji  = document.getElementById("sub-emoji");
-  const title  = document.getElementById("sub-title");
+  const card = document.getElementById("sub-card");
+  const emoji = document.getElementById("sub-emoji");
+  const title = document.getElementById("sub-title");
   const detail = document.getElementById("sub-detail");
   const untilEl = document.getElementById("sub-until");
   const payBtn = document.getElementById("pay-btn");
+  const payNote = document.getElementById("pay-note");
+  const promoBlock = document.getElementById("promo-block");
 
-  if (status === "subscribed") {
+  if (status === "admin") {
+    card.className = "sub-status-card admin";
+    emoji.textContent = "👑"; title.textContent = "Полный доступ";
+    detail.textContent = "Навсегда."; untilEl.textContent = "";
+    payBtn.style.display = "none"; promoBlock.style.display = "none";
+  } else if (status === "subscribed") {
     card.className = "sub-status-card active";
-    emoji.textContent = "✅";
-    title.textContent = "Подписка активна";
+    emoji.textContent = "✅"; title.textContent = "Подписка активна";
     detail.textContent = `Осталось ${days} дн.`;
     untilEl.textContent = until ? `до ${formatDate(until)}` : "";
-    payBtn.style.display = "block";
-    payBtn.textContent = "🔄 Продлить подписку";
-    payBtn.className = "pay-btn renew";
+    payBtn.style.display = "block"; payBtn.textContent = "🔄 Продлить";
+    payNote.style.display = "block";
   } else if (status === "expired") {
     card.className = "sub-status-card expired";
-    emoji.textContent = "❌";
-    title.textContent = "Подписка истекла";
-    detail.textContent = "Оформи подписку чтобы продолжить";
-    untilEl.textContent = "";
-    payBtn.style.display = "block";
-    payBtn.textContent = "💳 Оплатить 200₽ / месяц";
+    emoji.textContent = "❌"; title.textContent = "Подписка истекла";
+    detail.textContent = "Оформи чтобы продолжить"; untilEl.textContent = "";
+    payBtn.style.display = "block"; payBtn.textContent = "💳 Оплатить 200₽ / месяц";
+    payNote.style.display = "block";
   } else {
-    // trial (по умолчанию)
     card.className = "sub-status-card trial";
-    emoji.textContent = "🎁";
-    title.textContent = "Пробный период";
+    emoji.textContent = "🎁"; title.textContent = "Пробный период";
     detail.textContent = `Осталось ${days} дн. бесплатно`;
     untilEl.textContent = until ? `до ${formatDate(until)}` : "";
-    payBtn.style.display = "block";
-    payBtn.textContent = "💳 Оформить подписку — 200₽/мес";
+    payBtn.style.display = "block"; payBtn.textContent = "💳 Оформить — 200₽/мес";
+    payNote.style.display = "block";
   }
 }
 
 function formatDate(iso) {
-  try {
-    const d = new Date(iso);
-    return d.toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
-  } catch { return iso; }
+  try { return new Date(iso).toLocaleDateString("ru-RU", { day: "numeric", month: "long" }); }
+  catch { return iso; }
 }
 
 function requestPayment() {
-  // Отправляем боту сигнал запросить инвойс
-  tg.sendData(JSON.stringify({ action: "pay" }));
+  const btn = document.getElementById("pay-btn");
+  btn.textContent = "⏳ Отправляю..."; btn.disabled = true;
+  try {
+    tg.sendData(JSON.stringify({ action: "pay" }));
+  } catch(e) {
+    btn.textContent = "💳 Оплатить 200₽ / месяц"; btn.disabled = false;
+    tg.showAlert("Закрой мини-апп и напиши боту /pay");
+  }
 }
 
-// ── Настройки ──────────────────────────────
+function applyPromo() {
+  const code = document.getElementById("promo-input").value.trim();
+  if (!code) { showPromoResult("Введи промокод", false); return; }
+  try {
+    tg.sendData(JSON.stringify({ action: "promo", code }));
+    showPromoResult("✅ Запрос отправлен — смотри сообщение от бота", true);
+  } catch(e) {
+    showPromoResult("Напиши боту: /promo " + code, false);
+  }
+}
 
-const saved = localStorage.getItem("parser_config_v2");
+function showPromoResult(text, ok) {
+  const res = document.getElementById("promo-result");
+  res.textContent = text; res.className = "promo-result " + (ok ? "ok" : "err");
+  res.style.display = "block";
+}
+
+// ── Загрузка сохранённых настроек ──
+const saved = localStorage.getItem("parser_config_v3");
 if (saved) {
   try {
     const d = JSON.parse(saved);
     document.getElementById("channels").value = (d.channels || []).join("\n");
     document.getElementById("keywords").value = (d.keywords || []).join(", ");
+
+    // Куда слать
+    if (d.dest_channel) {
+      selectDest("channel");
+      document.getElementById("dest-channel-input").value = d.dest_channel;
+    }
+
     if (d.ai_enabled) {
       aiEnabled = true;
       document.getElementById("ai-toggle").classList.add("on");
@@ -455,15 +354,13 @@ if (saved) {
     }
     if (d.ai_style) {
       selectedStyle = d.ai_style;
-      document.querySelectorAll(".style-btn").forEach(b => {
-        b.classList.toggle("active", b.dataset.style === selectedStyle);
-      });
+      document.querySelectorAll(".style-btn").forEach(b => b.classList.toggle("active", b.dataset.style === selectedStyle));
       if (d.ai_style === "custom") {
         document.getElementById("custom-prompt-wrap").style.display = "block";
         document.getElementById("custom-prompt").value = d.ai_prompt || "";
       }
     }
-  } catch (e) {}
+  } catch(e) {}
 }
 
 function toggleAI() {
@@ -476,8 +373,7 @@ function selectStyle(btn) {
   document.querySelectorAll(".style-btn").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
   selectedStyle = btn.dataset.style;
-  document.getElementById("custom-prompt-wrap").style.display =
-    selectedStyle === "custom" ? "block" : "none";
+  document.getElementById("custom-prompt-wrap").style.display = selectedStyle === "custom" ? "block" : "none";
 }
 
 function saveSettings() {
@@ -486,76 +382,60 @@ function saveSettings() {
   const keywords = document.getElementById("keywords").value
     .split(",").map(s => s.trim()).filter(Boolean);
 
-  if (!channels.length) {
-    tg.showAlert("Добавь хотя бы один канал!");
-    return;
+  if (!channels.length) { tg.showAlert("Добавь хотя бы один канал!"); return; }
+
+  // Канал назначения
+  let destChannel = "";
+  if (destMode === "channel") {
+    destChannel = document.getElementById("dest-channel-input").value.trim();
+    if (!destChannel) { tg.showAlert("Введи юзернейм своего канала!"); return; }
+    if (!destChannel.startsWith("@")) destChannel = "@" + destChannel;
   }
 
   const data = {
     channels,
     keywords,
+    dest_channel: destChannel,   // пусто = в личку
     ai_enabled: aiEnabled,
     ai_style: selectedStyle,
     ai_prompt: document.getElementById("custom-prompt").value.trim(),
   };
 
-  localStorage.setItem("parser_config_v2", JSON.stringify(data));
+  localStorage.setItem("parser_config_v3", JSON.stringify(data));
   tg.sendData(JSON.stringify(data));
 }
 
-// ── Превью нейронки ────────────────────────
-
+// ── Превью нейронки ──
 const STYLE_PROMPTS = {
-  hype: "Ты крутой SMM-щик. Перепиши пост в хайповом стиле: короткие предложения, эмодзи, КАПС на ключевых словах. Без воды.",
+  hype: "Ты крутой SMM-щик. Перепиши пост в хайповом стиле: короткие предложения, эмодзи, КАПС. Без воды.",
   short: "Сожми до 2-3 предложений. Только суть.",
-  meme: "Перепиши в мемном стиле: юмор, сленг, смешно но по делу.",
+  meme: "Перепиши в мемном стиле: юмор, сленг, по делу.",
   news: "Перепиши как новостная заметка: нейтрально, структурированно."
 };
 
-function schedulePreview() {
-  clearTimeout(previewTimer);
-  previewTimer = setTimeout(runPreview, 1800);
-}
+function schedulePreview() { clearTimeout(previewTimer); previewTimer = setTimeout(runPreview, 1800); }
 
 async function runPreview() {
+  if (!GROQ_KEY) { document.getElementById("preview").textContent = "❌ Вставь GROQ_KEY в код файла index.html"; return; }
   const text = document.getElementById("preview-input").value.trim();
   if (!text) return;
-
   const customPrompt = document.getElementById("custom-prompt").value.trim();
-  const prompt = (selectedStyle === "custom" && customPrompt)
-    ? customPrompt
-    : STYLE_PROMPTS[selectedStyle] || STYLE_PROMPTS.hype;
-
+  const prompt = (selectedStyle === "custom" && customPrompt) ? customPrompt : STYLE_PROMPTS[selectedStyle] || STYLE_PROMPTS.hype;
   const box = document.getElementById("preview");
-  box.textContent = "⏳ Генерирую...";
-  box.className = "preview-box loading";
-
+  box.textContent = "⏳ Генерирую..."; box.className = "preview-box loading";
   try {
     const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${GROQ_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "llama-3.1-8b-instant",
-        messages: [
-          { role: "system", content: prompt },
-          { role: "user", content: text },
-        ],
-        max_tokens: 400,
-        temperature: 0.85,
-      }),
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROQ_KEY}` },
+      body: JSON.stringify({ model: "llama-3.1-8b-instant", messages: [{ role: "system", content: prompt }, { role: "user", content: text }], max_tokens: 400, temperature: 0.85 })
     });
     const data = await r.json();
+    if (data.error) throw new Error(data.error.message);
     box.textContent = data.choices?.[0]?.message?.content || "Пустой ответ";
-  } catch (e) {
-    box.textContent = "❌ Ошибка. Проверь GROQ_KEY.";
-  }
+  } catch(e) { box.textContent = "❌ " + e.message; }
   box.className = "preview-box";
 }
 
-// ── Инициализация ──────────────────────────
 loadSubStatus();
 </script>
 </body>
